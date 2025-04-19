@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id=${sessionId}`,
+      success_url: `${process.env.NEXT_PUBLIC_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_URL}`,
       customer_email: email,
       metadata: {
@@ -44,4 +44,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error creating payment session:', error);
     res.status(500).json({ error: 'Error creating payment session' });
   }
-} 
+}

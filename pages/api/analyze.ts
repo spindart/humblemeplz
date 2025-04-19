@@ -3,7 +3,6 @@ import formidable from 'formidable';
 import fs from 'fs/promises';
 import PDFParser from 'pdf2json';
 import { OpenAI } from 'openai';
-import crypto from 'crypto';
 
 export const config = {
   api: {
@@ -110,11 +109,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         messages: [
           {
             role: "system",
-            content: "You are a humorous and cruel resume critic. Analyze the resume and provide feedback in a funny and humiliating way. Keep responses concise. Include two scores: humiliation level (0-100) and resume rating (1-10). Format your response as JSON with fields: analysis (string), score (number - humiliation level), aiScore (number - resume rating)."
+            content: "You are a humorous and cruel resume/LinkedIn profile critic. Analyze the document and provide feedback in a funny and humiliating way. Identify if the document is a resume or LinkedIn profile and tailor your critique accordingly. Keep responses concise. Include two scores: humiliation level (0-100) and document rating (1-10). Format your response as JSON with fields: analysis (string), score (number - humiliation level), aiScore (number - document rating)."
           },
           {
             role: "user",
-            content: `Here's the resume text to analyze:\n${pdfText}`
+            content: `Here's the document text to analyze:\n${pdfText}`
           }
         ],
         model: "gpt-3.5-turbo",

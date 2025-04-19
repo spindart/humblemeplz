@@ -130,6 +130,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let parsedResponse;
       try {
         parsedResponse = JSON.parse(responseContent);
+        
+        // Ensure score and aiScore are numbers
+        parsedResponse.score = typeof parsedResponse.score === 'number' ? 
+          Math.min(100, Math.max(0, parsedResponse.score)) : 75;
+        parsedResponse.aiScore = typeof parsedResponse.aiScore === 'number' ? 
+          Math.min(10, Math.max(1, parsedResponse.aiScore)) : 5;
       } catch (error) {
         throw new Error('Failed to parse OpenAI response');
       }
@@ -148,20 +154,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Clean up the temporary file
       await fs.unlink(filePath);
       
-      // Return the mock response
+      // Return the mock response with validated scores
       return res.status(200).json({
         analysis: mockResponse.analysis,
-        score: mockResponse.score,
-        aiScore: mockResponse.aiScore
+        score: Math.min(100, Math.max(0, mockResponse.score)),
+        aiScore: Math.min(10, Math.max(1, mockResponse.aiScore))
       });
     }
   } catch (error) {
     console.error('Error processing PDF:', error);
     // If everything fails, return a basic mock
+    // If everything fails, return a basic mock
     return res.status(200).json({
-      analysis: "Failed to process your resume, but I'm sure it was mediocre anyway! 😅\n\nPRO TIP: Next time, try submitting a resume that doesn't look like it was written by a chatbot having an existential crisis! 🤖",
+      analysis: "Failed to process your resume, but I'm sure it was mediocre anyway! 😅\n\nPRO TIP: Next time, try submitting a resume that doesn't look like it was written by a chatbot having an existential Crisis! 🤖",
       score: 100,
       aiScore: 1
     });
   }
-} 
+}

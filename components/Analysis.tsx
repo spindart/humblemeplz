@@ -48,6 +48,8 @@ export const Analysis: React.FC<AnalysisProps> = ({ analysis, fileName, fileSize
           How to improve my resume
         </button>
       </div>
+      <p className="text-gray-600 text-center text-sm mt-6 text-lg">Don't worry, 98% of people leave here depressed too.</p>
+      <p className="text-gray-600 text-center text-sm mt-2 text-lg">This is just a joke. Don't use it as professional advice.</p>
     </div>
   );
 }; 

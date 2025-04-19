@@ -56,7 +56,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUpload, isLoading 
           <div className="space-y-4">
             <div className="w-12 h-12 border-4 border-red-800 border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-gray-600">
-              {uploadingFile ? 'Uploading resume...' : 'Analyzing your resume...'}
+              {uploadingFile ? 'Preparing devastating comments...' : 'Analyzing your resume...'}
             </p>
           </div>
         ) : (

@@ -74,9 +74,9 @@ export default function Success() {
   };
 
   return (
-    <div className="min-h-screen bg-pink-50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <Head>
-        <title>Thank You! - MeHumilhe.com</title>
+        <title>Thank You! - HumbleMePlz.com</title>
         <meta name="description" content="Your personalized resume improvement tips" />
       </Head>
 

@@ -113,5 +113,4 @@ Feel free to open an issue or submit a pull request.
 This project uses environment variables to manage sensitive information.  
 **Never commit your `.env.local` file to version control.**
 
----
 

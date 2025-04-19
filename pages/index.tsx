@@ -53,7 +53,7 @@ export default function Home() {
 
           {!analysis && <FileUploader onUpload={handleFileUpload} isLoading={isLoading} />}
           {analysis && (
-            <Analysis
+            <Analysis score={0} aiScore={0}
               analysis={analysis}
               fileName={fileName}
               fileSize={fileSize}

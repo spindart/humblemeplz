@@ -5,18 +5,33 @@ interface SocialShareButtonsProps {
 }
 
 export const SocialShareButtons: React.FC<SocialShareButtonsProps> = ({ analysisText }) => {
-  // Get a shortened version of the analysis for sharing
-  const getShareText = () => {
-    const shortText = analysisText.split('\n')[0]; // Just take the first paragraph
-    const truncatedText = shortText.length > 100 
-      ? shortText.substring(0, 97) + '...' 
-      : shortText;
-    return `${truncatedText} #HumbleMePlz`;
+  // Get a shortened version of the analysis for sharing based on platform
+  const getShareText = (platform: 'twitter' | 'linkedin' | 'facebook' | 'whatsapp') => {
+    // For Twitter, we need to limit to around 280 chars minus URL length
+    if (platform === 'twitter') {
+      const firstParagraph = analysisText.split('\n')[0];
+      return firstParagraph.length > 230 
+        ? firstParagraph.substring(0, 227) + '...' 
+        : firstParagraph;
+    }
+    
+    // For LinkedIn, Facebook and WhatsApp, use more complete text
+    const fullText = analysisText.split('\n\n')[0]; // First paragraph block
+    
+    // LinkedIn has character limits on the summary parameter
+    if (platform === 'linkedin') {
+      return fullText.length > 256
+        ? fullText.substring(0, 253) + '...'
+        : fullText;
+    }
+    
+    // For Facebook and WhatsApp, use the full text
+    return fullText;
   };
 
   const handleShare = (platform: 'twitter' | 'linkedin' | 'facebook' | 'whatsapp') => {
-    const shareText = getShareText();
-    const encodedText = encodeURIComponent(shareText);
+    const shareText = getShareText(platform);
+    const encodedText = encodeURIComponent(shareText + ' #HumbleMePlz');
     const websiteUrl = encodeURIComponent("https://humblemeplz.com");
     
     let shareUrl = '';
@@ -40,8 +55,8 @@ export const SocialShareButtons: React.FC<SocialShareButtonsProps> = ({ analysis
   };
 
   const copyToClipboard = () => {
-    const shareText = getShareText();
-    navigator.clipboard.writeText(`${shareText} https://humblemeplz.com`);
+    const shareText = getShareText('facebook'); // Use the full text for Instagram
+    navigator.clipboard.writeText(`${shareText} #HumbleMePlz https://humblemeplz.com`);
     alert("Text copied to clipboard! Open Instagram to share.");
   };
 

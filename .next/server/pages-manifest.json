@@ -3,6 +3,6 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
-  "/api/analyze": "pages/api/analyze.js",
-  "/api/create-payment": "pages/api/create-payment.js"
+  "/success": "pages/success.js",
+  "/api/analyze": "pages/api/analyze.js"
 }

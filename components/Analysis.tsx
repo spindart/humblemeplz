@@ -9,6 +9,7 @@ interface AnalysisProps {
 }
 
 import { ScoreBar } from './ScoreBar';
+import { SocialShareButtons } from './SocialShareButtons';
 
 export const Analysis: React.FC<AnalysisProps> = ({ analysis, fileName, fileSize, onTryAgain, onGetHelp, score, aiScore }) => {
   return (
@@ -27,6 +28,7 @@ export const Analysis: React.FC<AnalysisProps> = ({ analysis, fileName, fileSize
         {analysis}
       </div>
 
+ 
       <div className="flex items-center justify-between mt-6">
         <button
           onClick={onTryAgain}
@@ -47,6 +49,10 @@ export const Analysis: React.FC<AnalysisProps> = ({ analysis, fileName, fileSize
           </svg>
           How to improve my resume
         </button>
+      </div>
+      <div className="mt-4 mb-6 border-t border-gray-200 pt-4">
+        <h3 className="text-center text-lg font-medium text-gray-700 mb-2">Share your humiliation:</h3>
+        <SocialShareButtons analysisText={analysis} />
       </div>
       <p className="text-gray-600 text-center text-sm mt-6 text-lg">Don't worry, 98% of people leave here depressed too.</p>
       <p className="text-gray-600 text-center text-sm mt-2 text-lg">This is just a joke. Don't use it as professional advice.</p>

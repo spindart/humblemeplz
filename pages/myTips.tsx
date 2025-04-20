@@ -14,6 +14,7 @@ export default function MyTips() {
   const { userId } = useAuth();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
+  const [badges, setBadges] = useState<string[]>([]); // New state for badges
 
   useEffect(() => {
     if (userId) {
@@ -21,6 +22,10 @@ export default function MyTips() {
         .then((response) => {
           setAnalyses(response.data);
           setLoading(false);
+          // Example logic to determine badges
+          if (response.data.length >= 10) {
+            setBadges([...badges, "Analysis Master"]);
+          }
         })
         .catch((error) => {
           console.error("Error fetching analyses:", error);
@@ -45,6 +50,17 @@ export default function MyTips() {
           <p className="text-gray-600 text-center mb-12 text-lg">
             Review your past analyses and see how you've improved.
           </p>
+          {/* Display badges */}
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-800">Your Badges</h2>
+            <div className="flex justify-center space-x-4">
+              {badges.map((badge, index) => (
+                <span key={index} className="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full">
+                  {badge}
+                </span>
+              ))}
+            </div>
+          </div>
           {loading ? (
             <p className="text-center text-gray-600">Loading...</p>
           ) : (

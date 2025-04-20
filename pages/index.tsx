@@ -45,17 +45,31 @@ export default function Home() {
         <meta name="description" content="Get honest, brutal feedback on your resume to improve your job search. Upload your CV for a professional analysis that will help you land more interviews." />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="keywords" content="resume review, CV feedback, resume roasting, job application help, career advice, resume improvement" />
+        
+        {/* Open Graph / Social Media Meta Tags */}
         <meta property="og:title" content="HumbleMePlz - Get Brutal Resume Feedback" />
         <meta property="og:description" content="Upload your resume for an honest analysis that will help you understand why you're not getting interviews." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://humblemeplz.com" />
         <meta property="og:image" content="/og-image.jpg" />
+        
+        {/* Twitter Card Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="HumbleMePlz - See how unqualified you are" />
         <meta name="twitter:description" content="Get honest feedback on your resume to improve your job search success rate." />
         <meta name="twitter:image" content="/twitter-image.jpg" />
+        
+        {/* Canonical Link */}
         <link rel="canonical" href="https://humblemeplz.com" />
-        <link rel="icon" href="/favicon.ico" />
+        
+        {/* Favicon Tags */}
+        <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+        <link rel="manifest" href="site.webmanifest" />
+        <link rel="mask-icon" href="safari-pinned-tab.svg" color="#991b1b" />
+        <meta name="msapplication-TileColor" content="#991b1b" />
+        <meta name="theme-color" content="#ffffff" />
       </Head>
       {isClerkEnabled && <HeaderMenu />}
       <header className="py-4 px-6 flex justify-end">
@@ -106,13 +120,11 @@ export default function Home() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
-
-        {/* <p className="text-gray-600 text-center mt-6 text-lg">Don't worry, 98% of people leave here depressed too.</p> */}
       </main>
 
       <footer className="text-center text-sm text-gray-500 py-6">
         <p>Your data is not saved. Only the text is extracted for analysis.</p>
-        <p className="mt-2">© {new Date().getFullYear()} HumbleMePlz.com | <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link> | <Link href="/terms" className="hover:underline">Terms of Service</Link></p>
+        <p className="mt-2">© {new Date().getFullYear()} HumbleMePlz.com</p>
       </footer>
     </div>
   );

@@ -200,6 +200,28 @@ export default function Success() {
         <title>Thank You! - HumbleMePlz.com</title>
         <meta name="description" content="Your personalized resume improvement tips" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        
+        {/* Open Graph / Social Media Meta Tags */}
+        <meta property="og:title" content="Thank You! - HumbleMePlz.com" />
+        <meta property="og:description" content="Your personalized resume improvement plan is ready." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://humblemeplz.com/success" />
+        <meta property="og:image" content="/og-image.jpg" />
+        
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Thank You! - HumbleMePlz.com" />
+        <meta name="twitter:description" content="Your personalized resume improvement plan is ready." />
+        <meta name="twitter:image" content="/twitter-image.jpg" />
+        
+        {/* Favicon Tags */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#991b1b" />
+        <meta name="msapplication-TileColor" content="#991b1b" />
+        <meta name="theme-color" content="#ffffff" />
       </Head>
       <HeaderMenu />
 

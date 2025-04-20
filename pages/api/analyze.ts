@@ -3,6 +3,7 @@ import formidable from 'formidable';
 import fs from 'fs/promises';
 import PDFParser from 'pdf2json';
 import { OpenAI } from 'openai';
+import { getAuth } from '@clerk/nextjs/server';
 
 export const config = {
   api: {
@@ -87,6 +88,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Obter informações do usuário autenticado
+  const { userId } = getAuth(req);
+  
   try {
     const form = formidable({});
     const [fields, files] = await form.parse(req);

@@ -13,6 +13,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
+    "@clerk/nextjs": "^6.16.0",
     "@headlessui/react": "^1.7.18",
     "@vercel/kv": "^3.0.0",
     "formidable": "^3.5.1",

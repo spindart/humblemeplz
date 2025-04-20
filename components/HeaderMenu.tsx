@@ -13,10 +13,10 @@ export default function HeaderMenu() {
           </span>
           <nav className="flex space-x-4 items-center">
             <button
-              onClick={() => router.push("/success")}
+              onClick={() => router.push("/myTips")} // Updated route to /myTips
               className="text-gray-700 hover:text-red-800"
             >
-              Minhas Dicas
+              My tips
             </button>
             <UserButton afterSignOutUrl="/" />
           </nav>

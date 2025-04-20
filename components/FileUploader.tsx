@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { SimpleCaptcha } from './SimpleCaptcha';
 
@@ -11,6 +11,9 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUpload, isLoading 
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showCaptcha, setShowCaptcha] = useState(false);
+  
+  // Read the environment variable to enable/disable captcha
+  const isCaptchaEnabled = process.env.NEXT_PUBLIC_CAPTCHA_ENABLED === 'true';
 
   const processUpload = async (file: File) => {
     const formData = new FormData();
@@ -39,9 +42,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUpload, isLoading 
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       setSelectedFile(file);
-      setShowCaptcha(true);
+      
+      // If captcha is enabled, show it; otherwise, process upload directly
+      if (isCaptchaEnabled) {
+        setShowCaptcha(true);
+      } else {
+        processUpload(file);
+      }
     }
-  }, []);
+  }, [isCaptchaEnabled]);
 
   const handleCaptchaVerify = (success: boolean) => {
     if (success && selectedFile) {

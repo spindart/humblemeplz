@@ -36,6 +36,8 @@ export default function Home() {
     setFileSize('');
   };
 
+  const isClerkEnabled = process.env.NEXT_PUBLIC_CLERK_ENABLED === 'true';
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col">
       <Head>
@@ -44,15 +46,16 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <HeaderMenu />
+      {isClerkEnabled && <HeaderMenu />}
       <header className="py-4 px-6 flex justify-end">
-        <SignedOut>
-          <Link href="/login" className="px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-700 transition-colors">
-            Login
-          </Link>
-        </SignedOut>
+        {isClerkEnabled && (
+          <SignedOut>
+            <Link href="/login" className="px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-700 transition-colors">
+              Login
+            </Link>
+          </SignedOut>
+        )}
       </header>
-
       <main className="flex-1 flex flex-col justify-center container mx-auto px-4 py-4 sm:py-8">
         <div className="max-w-2xl mx-auto w-full">
           <h1 className="text-5xl md:text-6xl font-title text-red-800 text-center mb-3 tracking-wide">

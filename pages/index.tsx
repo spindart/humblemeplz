@@ -41,9 +41,20 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col">
       <Head>
-        <title>HumbleMePlz - Get roasted, Get hired</title>
-        <meta name="description" content="Upload your resume for a brutal but honest analysis" />
+        <title>HumbleMePlz - See how unqualified you are</title>
+        <meta name="description" content="Get honest, brutal feedback on your resume to improve your job search. Upload your CV for a professional analysis that will help you land more interviews." />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="keywords" content="resume review, CV feedback, resume roasting, job application help, career advice, resume improvement" />
+        <meta property="og:title" content="HumbleMePlz - Get Brutal Resume Feedback" />
+        <meta property="og:description" content="Upload your resume for an honest analysis that will help you understand why you're not getting interviews." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://humblemeplz.com" />
+        <meta property="og:image" content="/og-image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="HumbleMePlz - See how unqualified you are" />
+        <meta name="twitter:description" content="Get honest feedback on your resume to improve your job search success rate." />
+        <meta name="twitter:image" content="/twitter-image.jpg" />
+        <link rel="canonical" href="https://humblemeplz.com" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {isClerkEnabled && <HeaderMenu />}
@@ -101,7 +112,7 @@ export default function Home() {
 
       <footer className="text-center text-sm text-gray-500 py-6">
         <p>Your data is not saved. Only the text is extracted for analysis.</p>
-        <p className="mt-2">© 2025 HumbleMePlz.com</p>
+        <p className="mt-2">© {new Date().getFullYear()} HumbleMePlz.com | <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link> | <Link href="/terms" className="hover:underline">Terms of Service</Link></p>
       </footer>
     </div>
   );

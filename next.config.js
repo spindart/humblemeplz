@@ -1,16 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false, // Disable strict mode in production for better performance
   swcMinify: true,
-  // Output standalone build for better compatibility with Azure
   output: 'standalone',
-  // Ensure environment variables are properly set
+  poweredByHeader: false,
+  compress: true,
   env: {
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL || 'https://humblemeplz.azurewebsites.net',
   },
-  // Disable telemetry in production
+  // Optimize image loading
+  images: {
+    domains: ['localhost', 'humblemeplz.azurewebsites.net'],
+    minimumCacheTTL: 60,
+  },
+  // Optimize production builds
   experimental: {
-    disableOptimizedLoading: true,
+    disableOptimizedLoading: false, // Enable optimized loading
+    optimizeCss: true, // Optimize CSS
+    scrollRestoration: true, // Improve scroll performance
   },
 }
 

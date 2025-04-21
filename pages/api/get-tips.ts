@@ -2,8 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { OpenAI } from 'openai';
 import { kv } from '@vercel/kv';
 
+// Replace standard OpenAI with Azure OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+  baseURL: process.env.AZURE_OPENAI_ENDPOINT,
+  defaultQuery: { 'api-version': '2023-05-15' },
+  defaultHeaders: { 'api-key': process.env.AZURE_OPENAI_API_KEY },
 });
 
 // Mock responses as fallback
@@ -53,7 +57,7 @@ const mockResponses = [
 async function generateAITips(cvContent: string): Promise<any> {
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-35-turbo", // Use deployment name
       messages: [
         {
           role: "system",
@@ -91,7 +95,7 @@ async function generateAITips(cvContent: string): Promise<any> {
     }
     return JSON.parse(content);
   } catch (error) {
-    console.error('Error generating AI tips:', error);
+    console.error('Error generating AI tips with Azure OpenAI:', error);
     throw error;
   }
 }
@@ -138,4 +142,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error getting tips:', error);
     return res.status(500).json({ error: 'Error retrieving tips' });
   }
-} 
+}

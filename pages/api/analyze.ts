@@ -11,8 +11,12 @@ export const config = {
   },
 };
 
+// Replace standard OpenAI with Azure OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+  baseURL: process.env.AZURE_OPENAI_ENDPOINT,
+  defaultQuery: { 'api-version': '2023-05-15' },
+  defaultHeaders: { 'api-key': process.env.AZURE_OPENAI_API_KEY },
 });
 
 const mockResponses = [
@@ -107,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Failed to extract text from PDF or PDF is empty' });
     }
 
-    // Try OpenAI first
+    // Try Azure OpenAI first
     try {
       const completion = await openai.chat.completions.create({
         messages: [
@@ -120,7 +124,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             content: `Here's the document text to analyze:\n${pdfText}`
           }
         ],
-        model: "gpt-3.5-turbo",
+        model: process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-35-turbo", // Use deployment name instead of model
         temperature: 0.8,
         max_tokens: 500
       });
@@ -148,7 +152,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json(parsedResponse);
 
     } catch (openaiError) {
-      console.warn('OpenAI API failed, using mock response:', openaiError);
+      console.warn('Azure OpenAI API failed, using mock response:', openaiError);
       
       // Get a mock response
       const mockResponse = getMockResponse();

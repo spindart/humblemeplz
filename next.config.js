@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false, // Disable strict mode in production for better performance
+  reactStrictMode: true,
   swcMinify: true,
   output: 'standalone',
   poweredByHeader: false,
@@ -16,7 +16,7 @@ const nextConfig = {
   // Optimize production builds
   experimental: {
     disableOptimizedLoading: false, // Enable optimized loading
-    optimizeCss: true, // Optimize CSS
+    optimizeCss: false, // Optimize CSS
     scrollRestoration: true, // Improve scroll performance
   },
 }

@@ -177,8 +177,6 @@ export const PaymentModal = ({ isOpen, onClose, sessionId }: PaymentModalProps) 
               </button>
             </div>
           </form>
-          
-          {/* Footer */}
           {/* <div className="bg-gray-50 p-4 text-xs text-center text-gray-500 border-t">
             By proceeding, you agree to our Terms of Service and Privacy Policy
           </div> */}

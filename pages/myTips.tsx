@@ -78,7 +78,7 @@ export default function MyTips() {
       </main>
       <footer className="text-center text-sm text-gray-500 py-6">
         <p>Your data is not saved. Only the text is extracted for analysis.</p>
-        <p className="mt-2">© 2025 HumbleMePlz.com</p>
+        <p className="mt-2">© {new Date().getFullYear()} HumbleMePlz.com</p>
       </footer>
     </div>
   );

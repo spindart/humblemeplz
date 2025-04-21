@@ -1,11 +1,11 @@
 {
-  "name": "mehumilhe",
+  "name": "humblemeplz",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p $PORT",
+    "start": "node server.js",
     "lint": "next lint"
   },
   "keywords": [],

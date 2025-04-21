@@ -36,8 +36,35 @@ jobs:
           AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_MODEL: ${{ secrets.AZURE_OPENAI_MODEL }}
           AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+          PORT: 8080
         run: |
           npm install
+          npm run build
+          # Create web.config for Azure
+          echo '<?xml version="1.0" encoding="utf-8"?>' > web.config
+          echo '<configuration>' >> web.config
+          echo '  <system.webServer>' >> web.config
+          echo '    <handlers>' >> web.config
+          echo '      <add name="iisnode" path="startup.js" verb="*" modules="iisnode" />' >> web.config
+          echo '    </handlers>' >> web.config
+          echo '    <rewrite>' >> web.config
+          echo '      <rules>' >> web.config
+          echo '        <rule name="NodeInspector" patternSyntax="ECMAScript" stopProcessing="true">' >> web.config
+          echo '          <match url="^startup.js\/debug[\/]?" />' >> web.config
+          echo '        </rule>' >> web.config
+          echo '        <rule name="StaticContent">' >> web.config
+          echo '          <action type="Rewrite" url="public{REQUEST_URI}" />' >> web.config
+          echo '        </rule>' >> web.config
+          echo '        <rule name="DynamicContent">' >> web.config
+          echo '          <conditions>' >> web.config
+          echo '            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True" />' >> web.config
+          echo '          </conditions>' >> web.config
+          echo '          <action type="Rewrite" url="startup.js" />' >> web.config
+          echo '        </rule>' >> web.config
+          echo '      </rules>' >> web.config
+          echo '    </rewrite>' >> web.config
+          echo '  </system.webServer>' >> web.config
+          echo '</configuration>' >> web.config
           npm run build --if-present
           npm run test --if-present
 

@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
 import fs from 'fs/promises';
 import PDFParser from 'pdf2json';
-import { OpenAI } from 'openai';
+import { AzureOpenAI } from 'openai';
 import { getAuth } from '@clerk/nextjs/server';
 
 export const config = {
@@ -12,12 +12,15 @@ export const config = {
 };
 
 // Replace standard OpenAI with Azure OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-  baseURL: process.env.AZURE_OPENAI_ENDPOINT,
-  defaultQuery: { 'api-version': '2023-05-15' },
-  defaultHeaders: { 'api-key': process.env.AZURE_OPENAI_API_KEY },
-});
+
+const apiKey = process.env.OPENAI_API_KEY;
+const endpoint = 'https://humblemeplz.openai.azure.com/openai/deployments/gpt-35-turbo/chat/completions?api-version=2025-01-01-preview';
+const deployment = process.env.OPEN_AI_DEPLOYMENT;
+const apiVersion = '2024-04-01-preview';
+const modelName = 'gpt-35-turbo';
+
+const options = { endpoint, apiKey, deployment, apiVersion };
+const client = new AzureOpenAI(options);
 
 const mockResponses = [
   {
@@ -67,8 +70,8 @@ const parsePDF = (filePath: string): Promise<string> => {
         reject(new Error('Invalid PDF data structure'));
         return;
       }
-      const text = pdfData.Pages.map((page: any) => 
-        page.Texts?.map((text: any) => 
+      const text = pdfData.Pages.map((page: any) =>
+        page.Texts?.map((text: any) =>
           text.R?.map((r: any) => r.T || '').join(' ') || ''
         ).join(' ') || ''
       ).join(' ');
@@ -94,11 +97,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Obter informações do usuário autenticado
   const { userId } = getAuth(req);
-  
+
   try {
     const form = formidable({});
     const [fields, files] = await form.parse(req);
-    
+
     if (!files.file || !Array.isArray(files.file) || !files.file[0]) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
@@ -113,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Try Azure OpenAI first
     try {
-      const completion = await openai.chat.completions.create({
+      const completion = await client.chat.completions.create({
         messages: [
           {
             role: "system",
@@ -124,7 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             content: `Here's the document text to analyze:\n${pdfText}`
           }
         ],
-        model: process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-35-turbo", // Use deployment name instead of model
+        model: "gpt-35-turbo",
         temperature: 0.8,
         max_tokens: 500
       });
@@ -137,11 +140,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let parsedResponse;
       try {
         parsedResponse = JSON.parse(responseContent);
-        
+
         // Ensure score and aiScore are numbers
-        parsedResponse.score = typeof parsedResponse.score === 'number' ? 
+        parsedResponse.score = typeof parsedResponse.score === 'number' ?
           Math.min(100, Math.max(0, parsedResponse.score)) : 75;
-        parsedResponse.aiScore = typeof parsedResponse.aiScore === 'number' ? 
+        parsedResponse.aiScore = typeof parsedResponse.aiScore === 'number' ?
           Math.min(10, Math.max(1, parsedResponse.aiScore)) : 5;
       } catch (error) {
         throw new Error('Failed to parse OpenAI response');
@@ -153,14 +156,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     } catch (openaiError) {
       console.warn('Azure OpenAI API failed, using mock response:', openaiError);
-      
+
       // Get a mock response
       const mockResponse = getMockResponse();
       console.log('Using mock response:', mockResponse); // Debug log
-      
+
       // Clean up the temporary file
       await fs.unlink(filePath);
-      
+
       // Return the mock response with validated scores
       return res.status(200).json({
         analysis: mockResponse.analysis,

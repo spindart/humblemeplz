@@ -14,9 +14,9 @@ export const config = {
 // Replace standard OpenAI with Azure OpenAI
 
 const apiKey = process.env.OPENAI_API_KEY;
-const endpoint = 'https://humblemeplz.openai.azure.com/openai/deployments/gpt-35-turbo/chat/completions?api-version=2025-01-01-preview';
-const deployment = process.env.OPEN_AI_DEPLOYMENT;
-const apiVersion = '2024-04-01-preview';
+const endpoint = process.env.OPENAI_ENDPOINT;
+const deployment = process.env.OPENAI_DEPLOYMENT;
+const apiVersion = process.env.OPENAI_API_VERSION;
 const modelName = 'gpt-35-turbo';
 
 const options = { endpoint, apiKey, deployment, apiVersion };
@@ -127,9 +127,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             content: `Here's the document text to analyze:\n${pdfText}`
           }
         ],
-        model: "gpt-35-turbo",
+        model: modelName,
         temperature: 0.8,
-        max_tokens: 500
+        max_tokens: 1000
       });
 
       const responseContent = completion.choices[0]?.message?.content;

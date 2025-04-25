@@ -13,8 +13,8 @@ export const ScoreBar: React.FC<ScoreBarProps> = ({ score, aiScore }) => {
   const validAiScore = Math.min(10, Math.max(1, Number(aiScore) || 3));
   
   useEffect(() => {
-    console.log("ScoreBar received:", { score, aiScore });
-    console.log("ScoreBar using:", { validScore, validAiScore });
+   // console.log("ScoreBar received:", { score, aiScore });
+    //console.log("ScoreBar using:", { validScore, validAiScore });
   }, [score, aiScore, validScore, validAiScore]);
   
   return (

@@ -2,6 +2,7 @@ import React from 'react';
 import { ScoreBar } from './ScoreBar';
 import { SocialShareButtons } from './SocialShareButtons';
 import { motion } from 'framer-motion';
+import SanitizedHtml from './SanitizedHtml';
 
 interface AnalysisProps {
   analysis: string;
@@ -46,12 +47,12 @@ export const Analysis: React.FC<AnalysisProps> = ({
       </motion.div>
 
       <motion.div 
-        className="text-gray-800 whitespace-pre-wrap mb-6 mt-6 text-sm sm:text-base"
+        className="text-gray-800 mb-6 mt-6 text-sm sm:text-base"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-        {analysis}
+         <SanitizedHtml html={analysis} className="whitespace-pre-wrap" />
       </motion.div>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">

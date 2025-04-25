@@ -142,7 +142,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Armazena o texto do currículo
       await redisClient.set(`cv_${sessionId}`, pdfText);
       await redisClient.expire(`cv_${sessionId}`, 86400); // 24 hours
-      await redisClient.expire(`cv_${sessionId}`, 86400); // 24 hours
 
       // Tenta obter resposta da OpenAI
       try {
@@ -150,7 +149,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           messages: [
             {
               role: "system",
-              content: `You are a brutally honest and darkly humorous critic of résumés and LinkedIn profiles. Your task is to thoroughly roast the provided document with sarcasm and wit while secretly providing valuable feedback. Focus intensely on analyzing specific details rather than making generic comments.
+              content: `You are a brutally honest and darkly humorous critic of résumés and LinkedIn profiles. Your task is to thoroughly roast the provided document with sarcasm and wit while secretly providing valuable feedback. Focus intensely on analyzing specific details rather than making generic comments. Use emojis ONLY to emphasize humorous observations, critical feedback, or ironic points. Place emojis strategically to highlight moments where you're being particularly witty or delivering important critique, they should appear only at key moments for emphasis or humor.
 
 Perform an in-depth analysis of these critical areas:
 
@@ -183,7 +182,7 @@ Perform an in-depth analysis of these critical areas:
    - Personal branding elements
    - Language, tone, and professionalism
 
-Your response should be 400-500 words minimum, structured as:
+Your response should be 300-400 words maximum, structured as:
 - A sarcastic introduction (2-3 sentences)
 - A detailed roast of their PROFESSIONAL EXPERIENCE (specific companies, roles, descriptions)
 - A brutal critique of their claimed SKILLS (specific skills mentioned)
@@ -208,7 +207,7 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           ],
           model: 'gpt-4o-mini', // Use a variável modelName em vez de 'gpt-4o-mini'
           temperature: 0.8,
-          max_tokens: 100,
+          max_tokens: 1500,
           response_format: { type: "json_object" }
         });
 
@@ -218,6 +217,7 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           throw new Error('No response content from OpenAI');
         }
 
+        // After parsing the response from OpenAI
         parsedResponse = JSON.parse(responseContent);
 
         // Ensure score and aiScore are numbers
@@ -225,6 +225,18 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           Math.min(100, Math.max(0, parsedResponse.score)) : 75;
         parsedResponse.aiScore = typeof parsedResponse.aiScore === 'number' ?
           Math.min(10, Math.max(1, parsedResponse.aiScore)) : 5;
+
+        // Format the analysis text to ensure proper HTML rendering and Markdown formatting
+        parsedResponse.analysis = parsedResponse.analysis
+          .replace(/\n\n/g, '{{PARAGRAPH}}')
+          .replace(/\n/g, '<br>')
+          .replace(/{{PARAGRAPH}}/g, '<br><br>')
+          // Substituir tags HTML por marcação Markdown para negrito
+          .replace(/PROFESSIONAL EXPERIENCE/g, '**PROFESSIONAL EXPERIENCE**')
+          .replace(/SKILLS ASSESSMENT/g, '**SKILLS ASSESSMENT**')
+          .replace(/EDUCATION DEEP DIVE/g, '**EDUCATION DEEP DIVE**')
+          .replace(/EPIC FAILURES/g, '**EPIC FAILURES**')
+          .replace(/SAVAGE ADVICE/g, '**SAVAGE ADVICE**');
 
       } catch (openaiError) {
         console.warn('Azure OpenAI API failed, using mock response:', openaiError);

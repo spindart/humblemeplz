@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { useAuth, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
 import HeaderMenu from "../components/HeaderMenu";
 import { mockTips } from '../utils/mockData';
+import SanitizedHtml from '../components/SanitizedHtml';
 
 interface Tip {
   category: string;
@@ -195,13 +196,13 @@ export default function Success() {
                       <span className="w-6 h-6 sm:w-8 sm:h-8 bg-red-800 text-white rounded-full flex items-center justify-center mr-2 sm:mr-3 text-xs sm:text-sm flex-shrink-0">
                         {index + 1}
                       </span>
-                      <span className="break-words">{category.category}</span>
+                      <SanitizedHtml html={category.category} className="break-words" />
                     </h3>
                     <ul className="list-disc pl-4 sm:pl-6 space-y-1 sm:space-y-2 text-sm sm:text-base">
                       {category.tips && Array.isArray(category.tips) ? (
                         category.tips.map((tip, tipIndex) => (
                           <li key={tipIndex} className="text-gray-700">
-                            {tip}
+                            <SanitizedHtml html={tip} />
                           </li>
                         ))
                       ) : (

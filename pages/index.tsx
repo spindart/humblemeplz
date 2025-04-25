@@ -32,17 +32,17 @@ export default function Home() {
       setFileSize((file.size / (1024 * 1024)).toFixed(2) + ' MB');
       setAnalysis(analysisResponse.analysis);
 
-      // Adicione estas linhas para armazenar o score e aiScore
+      // Add these lines to store score and aiScore
       setScore(analysisResponse.score);
       setAiScore(analysisResponse.aiScore);
 
-      // Armazena o ID da sessão se for retornado pela API
+      // Store the session ID if returned by the API
       if (analysisResponse.sessionId) {
         setSessionId(analysisResponse.sessionId);
       }
     } catch (error) {
-      console.error('Erro ao analisar PDF:', error);
-      setAnalysis('Erro ao analisar PDF. Por favor, tente novamente.');
+      console.error('Error analyzing PDF:', error);
+      setAnalysis('Error analyzing PDF. Please try again.');
     } finally {
       setIsLoading(false);
     }

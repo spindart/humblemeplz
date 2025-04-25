@@ -31,11 +31,11 @@ export default function Home() {
       setFileName(file.name);
       setFileSize((file.size / (1024 * 1024)).toFixed(2) + ' MB');
       setAnalysis(analysisResponse.analysis);
-      
+
       // Adicione estas linhas para armazenar o score e aiScore
       setScore(analysisResponse.score);
       setAiScore(analysisResponse.aiScore);
-      
+
       // Armazena o ID da sessão se for retornado pela API
       if (analysisResponse.sessionId) {
         setSessionId(analysisResponse.sessionId);
@@ -63,23 +63,23 @@ export default function Home() {
         <meta name="description" content="Get honest, brutal feedback on your resume to improve your job search. Upload your CV for a professional analysis that will help you land more interviews." />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="keywords" content="resume review, CV feedback, resume roasting, job application help, career advice, resume improvement" />
-        
+
         {/* Open Graph / Social Media Meta Tags */}
         <meta property="og:title" content="HumbleMePlz - Get Brutal Resume Feedback" />
         <meta property="og:description" content="Upload your resume for an honest analysis that will help you understand why you're not getting interviews." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://humblemeplz.com" />
         <meta property="og:image" content="/og-image.jpg" />
-        
+
         {/* Twitter Card Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="HumbleMePlz - See how unqualified you are" />
         <meta name="twitter:description" content="Get honest feedback on your resume to improve your job search success rate." />
         <meta name="twitter:image" content="/twitter-image.jpg" />
-        
+
         {/* Canonical Link */}
         <link rel="canonical" href="https://humblemeplz.com" />
-        
+
         {/* Favicon Tags */}
         <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
@@ -105,7 +105,7 @@ export default function Home() {
             HumbleMePlz.com
           </h1>
           <p className="text-gray-600 text-center mb-12 text-lg">
-            Find out why you haven't even been called for an internship yet.
+            No callbacks? No worries. We'll roast your résumé into a better one.
             <br />
             <span className="text-red-800 font-medium">See how unqualified you are.</span>
           </p>
@@ -124,7 +124,7 @@ export default function Home() {
             </>
           )}
           {analysis && (
-            <Analysis 
+            <Analysis
               analysis={analysis}
               fileName={fileName}
               fileSize={fileSize}

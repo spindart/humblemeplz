@@ -79,7 +79,7 @@ export const Analysis: React.FC<AnalysisProps> = ({
           <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          Take YOUR Career to the Next Level
+          Fine. Let’s make your CV suck less.
         </motion.button>
       </div>
       

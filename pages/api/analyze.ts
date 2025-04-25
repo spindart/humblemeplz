@@ -120,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const [fields, files] = await form.parse(req);
 
     if (!files.file || !Array.isArray(files.file) || !files.file[0]) {
-      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const uploadedFile = files.file[0];
@@ -128,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const pdfText = await parsePDF(filePath);
     if (!pdfText.trim()) {
-      return res.status(400).json({ error: 'Falha ao extrair texto do PDF ou PDF está vazio' });
+      return res.status(400).json({ error: 'Failed to extract text from PDF or PDF is empty' });
     }
 
     // Create a new Redis client for each request
@@ -182,7 +182,7 @@ Perform an in-depth analysis of these critical areas:
    - Personal branding elements
    - Language, tone, and professionalism
 
-Your response should be 300-400 words maximum, structured as:
+Your response should be 400-500 words minimum, structured as:
 - A sarcastic introduction (2-3 sentences)
 - A detailed roast of their PROFESSIONAL EXPERIENCE (specific companies, roles, descriptions)
 - A brutal critique of their claimed SKILLS (specific skills mentioned)
@@ -207,12 +207,12 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           ],
           model: 'gpt-4o-mini', // Use a variável modelName em vez de 'gpt-4o-mini'
           temperature: 0.8,
-          max_tokens: 1500,
+          max_tokens: 2500,
           response_format: { type: "json_object" }
         });
 
         const responseContent = completion.choices[0]?.message?.content;
-        console.log(responseContent)
+        //console.log(responseContent)
         if (!responseContent) {
           throw new Error('No response content from OpenAI');
         }
@@ -250,14 +250,15 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           .replace(/SKILLS ASSESSMENT/g, '<h3 class="text-lg font-bold mt-4 mb-2">SKILLS ASSESSMENT</h3>')
           .replace(/EDUCATION DEEP DIVE/g, '<h3 class="text-lg font-bold mt-4 mb-2">EDUCATION DEEP DIVE</h3>')
           .replace(/EPIC FAILURES/g, '<h3 class="text-lg font-bold mt-4 mb-2">EPIC FAILURES</h3>')
-          .replace(/SAVAGE ADVICE/g, '<h3 class="text-lg font-bold mt-4 mb-2">SAVAGE ADVICE</h3>');
+          .replace(/SAVAGE ADVICE/g, '<h3 class="text-lg font-bold mt-4 mb-2">SAVAGE ADVICE</h3>')
+          .replace(/(HIGH PRIORITY):/g, '<br>');
 
       } catch (openaiError) {
         console.warn('Azure OpenAI API failed, using mock response:', openaiError);
 
         // Usa resposta mockada se a OpenAI falhar
         const mockResponse = getMockResponse();
-        console.log('Using mock response (details):', JSON.stringify(mockResponse));
+        //console.log('Using mock response (details):', JSON.stringify(mockResponse));
 
         parsedResponse = {
           analysis: mockResponse.analysis,
@@ -265,7 +266,7 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           aiScore: Math.min(10, Math.max(1, mockResponse.aiScore))
         };
 
-        console.log('Final parsed response:', JSON.stringify(parsedResponse));
+        //console.log('Final parsed response:', JSON.stringify(parsedResponse));
       }
 
       // Armazena a crítica no Redis (seja da OpenAI ou mockada)
@@ -318,7 +319,7 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
     } else {
       // Fallback final se tudo falhar
       return res.status(200).json({
-        analysis: "Falha ao processar seu currículo, mas tenho certeza de que era medíocre de qualquer maneira! 😅\n\nDICA PRO: Na próxima vez, tente enviar um currículo que não pareça ter sido escrito por um chatbot tendo uma crise existencial! 🤖",
+        analysis: "Failed to process your resume, but I'm sure it was mediocre anyway! 😅\n\nPRO TIP: Next time, try submitting a resume that doesn't look like it was written by a chatbot having an existential crisis! 🤖",
         score: 100,
         aiScore: 1,
         sessionId

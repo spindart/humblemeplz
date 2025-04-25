@@ -68,7 +68,7 @@ npm run dev
 yarn dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) in your browser.
+Visit [http://localhost:3000](http://localhost:3000)
 
 ---
 
@@ -83,7 +83,6 @@ HumbleMePlz/
 ├── styles/           # Global styles (Tailwind config, etc.)
 └── types/            # TypeScript type definitions
 ```
-
 ---
 
 ## 🛠️ Development Notes
@@ -91,26 +90,4 @@ HumbleMePlz/
 - ✅ Hot Reloading  
 - ✅ TypeScript with strict type-checking  
 - ✅ ESLint for code linting  
-- ✅ Tailwind CSS for rapid UI development  
-
----
-
-## 📄 License
-
-This project is licensed under the **ISC License**.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!  
-Feel free to open an issue or submit a pull request.
-
----
-
-## 📝 Important Note
-
-This project uses environment variables to manage sensitive information.  
-**Never commit your `.env.local` file to version control.**
-
-
+- ✅ Tailwind CSS for rapid UI development.

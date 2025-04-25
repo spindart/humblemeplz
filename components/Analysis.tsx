@@ -71,7 +71,7 @@ export const Analysis: React.FC<AnalysisProps> = ({
 
         <motion.button
           onClick={onGetHelp}
-          className="inline-flex items-center px-4 py-2 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 w-full sm:w-auto justify-center"
+          className="inline-flex items-center px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 w-full sm:w-auto justify-center" 
           whileHover={{ scale: 1.05, boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.1)" }}
           whileTap={{ scale: 0.95 }}
           transition={{ duration: 0.3 }}

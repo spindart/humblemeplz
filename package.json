@@ -15,6 +15,8 @@
   "description": "",
   "dependencies": {
     "@azure/core-sse": "^2.2.0",
+    "@azure/openai": "^2.0.0",
+    "@azure/storage-blob": "^12.27.0",
     "@clerk/clerk-sdk-node": "^5.1.6",
     "@clerk/nextjs": "^6.16.0",
     "@headlessui/react": "^1.7.18",
@@ -23,6 +25,7 @@
     "critters": "^0.0.20",
     "formidable": "^3.5.1",
     "framer-motion": "^12.7.4",
+    "micro": "^10.0.1",
     "next": "14.2.26",
     "openai": "^4.95.1",
     "pdf2json": "^3.1.5",
@@ -30,7 +33,9 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-dropzone": "^14.2.3",
-    "stripe": "^14.14.0"
+    "redis": "^4.7.0",
+    "stripe": "^14.14.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",

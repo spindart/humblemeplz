@@ -4,6 +4,9 @@ import fs from 'fs/promises';
 import PDFParser from 'pdf2json';
 import { AzureOpenAI } from 'openai';
 import { getAuth } from '@clerk/nextjs/server';
+import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
+import { v4 as uuidv4 } from 'uuid';
 
 export const config = {
   api: {
@@ -11,16 +14,13 @@ export const config = {
   },
 };
 
-// Replace standard OpenAI with Azure OpenAI
 
-const apiKey = process.env.OPENAI_API_KEY;
-const endpoint = process.env.OPENAI_ENDPOINT;
-const deployment = process.env.OPENAI_DEPLOYMENT;
-const apiVersion = process.env.OPENAI_API_VERSION;
-const modelName = 'gpt-35-turbo';
 
-const options = { endpoint, apiKey, deployment, apiVersion };
-const client = new AzureOpenAI(options);
+const client = new AzureOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  endpoint: process.env.OPENAI_ENDPOINT,
+  apiVersion: process.env.OPENAI_API_VERSION || "2023-05-15" // Use a versão mais recente do API ou deixe como undefined para usar a versão padrão do Azure OpenAI
+});
 
 const mockResponses = [
   {
@@ -90,20 +90,37 @@ const getMockResponse = () => {
   return mockResponses[Math.floor(Math.random() * mockResponses.length)];
 };
 
+// Configuração do Redis no Azure with retry logic and error handling
+const getRedisClient = () => {
+  return createClient({
+    url: process.env.AZURE_REDIS_CONNECTION_STRING,
+    socket: {
+      reconnectStrategy: (retries) => {
+        if (retries > 10) {
+          console.error('Redis reconnect attempts exceeded');
+          return new Error('Redis reconnect attempts exceeded');
+        }
+        return Math.min(retries * 50, 1000);
+      },
+      connectTimeout: 10000, // 10 seconds
+    }
+  });
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Obter informações do usuário autenticado
-  const { userId } = getAuth(req);
+  let redisClient = null;
+  let sessionId = uuidv4(); // Gera o ID de sessão no início para garantir consistência
 
   try {
     const form = formidable({});
     const [fields, files] = await form.parse(req);
 
     if (!files.file || !Array.isArray(files.file) || !files.file[0]) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
     }
 
     const uploadedFile = files.file[0];
@@ -111,34 +128,96 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const pdfText = await parsePDF(filePath);
     if (!pdfText.trim()) {
-      return res.status(400).json({ error: 'Failed to extract text from PDF or PDF is empty' });
+      return res.status(400).json({ error: 'Falha ao extrair texto do PDF ou PDF está vazio' });
     }
 
-    // Try Azure OpenAI first
+    // Create a new Redis client for each request
+    redisClient = getRedisClient();
+    let parsedResponse = null;
+
     try {
-      const completion = await client.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: "You are a humorous and cruel resume/LinkedIn profile critic. Analyze the document and provide feedback in a funny and humiliating way. Identify if the document is a resume or LinkedIn profile and tailor your critique accordingly. Keep responses concise. Include two scores: humiliation level (0-100) and document rating (1-10). Format your response as JSON with fields: analysis (string), score (number - humiliation level), aiScore (number - document rating)."
-          },
-          {
-            role: "user",
-            content: `Here's the document text to analyze:\n${pdfText}`
-          }
-        ],
-        model: modelName,
-        temperature: 0.8,
-        max_tokens: 1000
-      });
+      // Conecta ao Redis
+      await redisClient.connect();
 
-      const responseContent = completion.choices[0]?.message?.content;
-      if (!responseContent) {
-        throw new Error('No response content from OpenAI');
-      }
+      // Armazena o texto do currículo
+      await redisClient.set(`cv_${sessionId}`, pdfText);
+      await redisClient.expire(`cv_${sessionId}`, 86400); // 24 hours
+      await redisClient.expire(`cv_${sessionId}`, 86400); // 24 hours
 
-      let parsedResponse;
+      // Tenta obter resposta da OpenAI
       try {
+        const completion = await client.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content: `You are a brutally honest and darkly humorous critic of résumés and LinkedIn profiles. Your task is to thoroughly roast the provided document with sarcasm and wit while secretly providing valuable feedback. Focus intensely on analyzing specific details rather than making generic comments.
+
+Perform an in-depth analysis of these critical areas:
+
+1. PROFESSIONAL EXPERIENCE (HIGH PRIORITY):
+   - Scrutinize each company listed: Are they impressive? Relevant? Suspicious gaps?
+   - Evaluate job titles: Are they inflated or undersold?
+   - Analyze responsibilities vs. achievements: Does the candidate actually show results or just list duties?
+   - Look for metrics and quantifiable achievements (or the lack thereof)
+   - Comment on career progression (or stagnation)
+   - Identify red flags like job-hopping or suspicious employment gaps
+
+2. SKILLS ASSESSMENT (HIGH PRIORITY):
+   - Critically evaluate technical and soft skills claimed
+   - Compare skill claims against evidence in work experience
+   - Identify outdated, irrelevant, or obviously exaggerated skills
+   - Note any generic skills everyone claims ("communication", "teamwork")
+   - Assess depth vs. breadth of expertise
+   - Identify missing critical skills for their target role/industry
+
+3. EDUCATION DEEP DIVE (HIGH PRIORITY):
+   - Assess relevance of degrees to career path
+   - Comment on institution prestige or obscurity
+   - Note any missing expected certifications or continued education
+   - Evaluate how education is leveraged in their career narrative
+   - Identify educational red flags or misalignments with career goals
+
+4. ADDITIONAL ASSESSMENT AREAS:
+   - Document formatting and visual appeal (or lack thereof)
+   - Overall career narrative and coherence
+   - Personal branding elements
+   - Language, tone, and professionalism
+
+Your response should be 400-500 words minimum, structured as:
+- A sarcastic introduction (2-3 sentences)
+- A detailed roast of their PROFESSIONAL EXPERIENCE (specific companies, roles, descriptions)
+- A brutal critique of their claimed SKILLS (specific skills mentioned)
+- A merciless analysis of their EDUCATION (specific degrees/institutions)
+- "EPIC FAILURES": 4-6 specific, detailed examples of the worst elements
+- "SAVAGE ADVICE": 2-3 specific improvement suggestions disguised as insults
+
+IMPORTANT: Respond ONLY with a valid JSON object WITHOUT markdown formatting or code blocks. The object must contain:
+- "analysis": Your complete and detailed analysis, including all sections mentioned above.
+- "score": Humiliation level from 0 (mild) to 100 (total destruction).
+- "aiScore": Actual quality rating of the document, from 1 (complete disaster) to 10 (perfection).
+
+Example of correct response format:
+{"analysis":"Your detailed analysis here...","score":75,"aiScore":4}
+
+DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
+            },
+            {
+              role: "user",
+              content: `Here's the document text to analyze:\n${pdfText}`
+            }
+          ],
+          model: 'gpt-4o-mini', // Use a variável modelName em vez de 'gpt-4o-mini'
+          temperature: 0.8,
+          max_tokens: 100,
+          response_format: { type: "json_object" }
+        });
+
+        const responseContent = completion.choices[0]?.message?.content;
+        console.log(responseContent)
+        if (!responseContent) {
+          throw new Error('No response content from OpenAI');
+        }
+
         parsedResponse = JSON.parse(responseContent);
 
         // Ensure score and aiScore are numbers
@@ -146,39 +225,98 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           Math.min(100, Math.max(0, parsedResponse.score)) : 75;
         parsedResponse.aiScore = typeof parsedResponse.aiScore === 'number' ?
           Math.min(10, Math.max(1, parsedResponse.aiScore)) : 5;
-      } catch (error) {
-        throw new Error('Failed to parse OpenAI response');
+
+      } catch (openaiError) {
+        console.warn('Azure OpenAI API failed, using mock response:', openaiError);
+
+        // Usa resposta mockada se a OpenAI falhar
+        const mockResponse = getMockResponse();
+        console.log('Using mock response (details):', JSON.stringify(mockResponse));
+
+        parsedResponse = {
+          analysis: mockResponse.analysis,
+          score: Math.min(100, Math.max(0, mockResponse.score)),
+          aiScore: Math.min(10, Math.max(1, mockResponse.aiScore))
+        };
+
+        console.log('Final parsed response:', JSON.stringify(parsedResponse));
       }
 
-      // Clean up the temporary file
-      await fs.unlink(filePath);
-      return res.status(200).json(parsedResponse);
+      // Armazena a crítica no Redis (seja da OpenAI ou mockada)
+      if (parsedResponse) {
+        try {
+          await redisClient.set(`critique_${sessionId}`, JSON.stringify(parsedResponse));
+          await redisClient.expire(`critique_${sessionId}`, 86400); // 24 hours
+        } catch (redisError) {
+          console.error('Redis storage error:', redisError);
+          // Continue mesmo se o Redis falhar
+        }
+      }
 
-    } catch (openaiError) {
-      console.warn('Azure OpenAI API failed, using mock response:', openaiError);
+    } catch (error) {
+      console.error('Error with Redis or other processing:', error);
 
-      // Get a mock response
-      const mockResponse = getMockResponse();
-      console.log('Using mock response:', mockResponse); // Debug log
+      // Se houver erro no Redis ou outro processamento, ainda usa mock
+      if (!parsedResponse) {
+        const mockResponse = getMockResponse();
+        parsedResponse = {
+          analysis: mockResponse.analysis,
+          score: Math.min(100, Math.max(0, mockResponse.score)),
+          aiScore: Math.min(10, Math.max(1, mockResponse.aiScore))
+        };
+      }
+    } finally {
+      // Limpa o arquivo temporário
+      try {
+        await fs.unlink(filePath);
+      } catch (fileError) {
+        console.error('Error deleting temporary file:', fileError);
+      }
 
-      // Clean up the temporary file
-      await fs.unlink(filePath);
+      // Desconecta o Redis se estiver conectado
+      if (redisClient && redisClient.isOpen) {
+        try {
+          await redisClient.disconnect();
+        } catch (disconnectError) {
+          console.error('Error disconnecting Redis:', disconnectError);
+        }
+      }
+    }
 
-      // Return the mock response with validated scores
+    // Retorna a resposta com o sessionId
+    if (parsedResponse) {
       return res.status(200).json({
-        analysis: mockResponse.analysis,
-        score: Math.min(100, Math.max(0, mockResponse.score)),
-        aiScore: Math.min(10, Math.max(1, mockResponse.aiScore))
+        ...parsedResponse,
+        sessionId
+      });
+    } else {
+      // Fallback final se tudo falhar
+      return res.status(200).json({
+        analysis: "Falha ao processar seu currículo, mas tenho certeza de que era medíocre de qualquer maneira! 😅\n\nDICA PRO: Na próxima vez, tente enviar um currículo que não pareça ter sido escrito por um chatbot tendo uma crise existencial! 🤖",
+        score: 100,
+        aiScore: 1,
+        sessionId
       });
     }
+
   } catch (error) {
     console.error('Error processing PDF:', error);
-    // If everything fails, return a basic mock
-    // If everything fails, return a basic mock
+
+    // Desconecta o Redis se estiver conectado
+    if (redisClient && redisClient.isOpen) {
+      try {
+        await redisClient.disconnect();
+      } catch (disconnectError) {
+        console.error('Error disconnecting Redis:', disconnectError);
+      }
+    }
+
+    // Retorna um mock básico se tudo falhar
     return res.status(200).json({
-      analysis: "Failed to process your resume, but I'm sure it was mediocre anyway! 😅\n\nPRO TIP: Next time, try submitting a resume that doesn't look like it was written by a chatbot having an existential Crisis! 🤖",
+      analysis: "Falha ao processar seu currículo, mas tenho certeza de que era medíocre de qualquer maneira! 😅\n\nDICA PRO: Na próxima vez, tente enviar um currículo que não pareça ter sido escrito por um chatbot tendo uma crise existencial! 🤖",
       score: 100,
-      aiScore: 1
+      aiScore: 1,
+      sessionId
     });
   }
 }

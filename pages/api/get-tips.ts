@@ -1,145 +1,147 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { OpenAI } from 'openai';
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
+import { AzureOpenAI } from 'openai';
+import { mockTips } from '../../utils/mockData';
 
-// Replace standard OpenAI with Azure OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-  baseURL: process.env.AZURE_OPENAI_ENDPOINT,
-  defaultQuery: { 'api-version': '2023-05-15' },
-  defaultHeaders: { 'api-key': process.env.AZURE_OPENAI_API_KEY },
+const redisClient = createClient({
+  url: process.env.AZURE_REDIS_CONNECTION_STRING
 });
 
-// Mock responses as fallback
-const mockResponses = [
-  {
-    category: "Content Improvements",
-    tips: [
-      "Use action verbs to start your bullet points (e.g., 'Developed', 'Implemented', 'Led')",
-      "Quantify achievements with specific numbers and percentages",
-      "Remove outdated or irrelevant experience",
-      "Focus on achievements rather than job duties",
-      "Customize your resume for each job application"
-    ]
-  },
-  {
-    category: "Format & Structure",
-    tips: [
-      "Keep your resume to 1-2 pages maximum",
-      "Use consistent formatting throughout",
-      "Ensure adequate white space for readability",
-      "Choose a professional, readable font (e.g., Arial, Calibri)",
-      "Use bullet points instead of paragraphs for experience"
-    ]
-  },
-  {
-    category: "Skills Enhancement",
-    tips: [
-      "Include both hard and soft skills",
-      "Remove outdated or basic skills (e.g., Microsoft Word)",
-      "Add relevant technical skills and certifications",
-      "Match skills to the job requirements",
-      "Include proficiency levels for language and technical skills"
-    ]
-  },
-  {
-    category: "Career Development Plan",
-    tips: [
-      "Identify key skills gaps in your current profile",
-      "Research industry certifications that could boost your value",
-      "Join professional associations in your field",
-      "Build a portfolio of projects to showcase skills",
-      "Network with professionals in your target role"
-    ]
-  }
-];
-
-async function generateAITips(cvContent: string): Promise<any> {
-  try {
-    const completion = await openai.chat.completions.create({
-      model: process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-35-turbo", // Use deployment name
-      messages: [
-        {
-          role: "system",
-          content: `You are a professional career consultant and resume expert. Analyze the provided CV and create a personalized improvement plan with 4 categories:
-          1. Content Improvements - Specific ways to improve the current content
-          2. Format & Structure - How to better organize and present the information
-          3. Skills Enhancement - What skills to develop based on their current profile
-          4. Career Development Plan - A roadmap for professional growth
-          
-          For each category, provide 5 specific, actionable tips based on the CV content.
-          The tips should be personalized to the individual's experience level, industry, and current skills.
-          
-          Return the response in this exact JSON format:
-          {
-            "tips": [
-              {
-                "category": "Category Name",
-                "tips": ["tip1", "tip2", "tip3", "tip4", "tip5"]
-              }
-            ]
-          }`
-        },
-        {
-          role: "user",
-          content: `Please analyze this CV and provide personalized improvement tips and a career development roadmap:\n\n${cvContent}`
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1500,
-    });
-
-    const content = completion.choices[0].message.content;
-    if (!content) {
-      throw new Error('No content received from OpenAI');
-    }
-    return JSON.parse(content);
-  } catch (error) {
-    console.error('Error generating AI tips with Azure OpenAI:', error);
-    throw error;
-  }
-}
+const client = new AzureOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  endpoint: process.env.OPENAI_ENDPOINT,
+  apiVersion: process.env.OPENAI_API_VERSION || "2023-05-15"
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { sessionId } = req.query;
+
+  if (!sessionId || typeof sessionId !== 'string') {
+    return res.status(400).json({ error: 'Session ID is required' });
+  }
+
   try {
-    const { session_id } = req.query;
-    
-    if (!session_id) {
-      return res.status(400).json({ error: 'Session ID is required' });
+    // Try to connect to Redis and get the resume text
+    let resumeText = null;
+    try {
+      await redisClient.connect();
+      resumeText = await redisClient.get(`cv_${sessionId}`);
+      await redisClient.disconnect();
+    } catch (redisError) {
+      console.error('Redis connection error:', redisError);
+      // Continue with mock data if Redis fails
     }
 
-    let tips;
-    let source = 'ai';
+    // If resume not found in Redis, use mock data
+    if (!resumeText) {
+      console.log('Resume not found or Redis error, using mock data');
+      const formattedTips = mockTips.map(category => ({
+        category: category.category,
+        tips: category.tips
+      }));
+      return res.status(200).json({ tips: formattedTips, source: 'mock' });
+    }
+
+    const prompt = `You are an insightful and experienced career advisor who provides valuable professional development guidance. Your task is to analyze the provided résumé and create a personalized career improvement roadmap.
+
+Based on the résumé, create a detailed career development plan that is honest, practical, and occasionally witty, but always focused on providing genuine value to help this person advance professionally.
+
+Analyze the résumé carefully to identify:
+1. Real strengths demonstrated through concrete achievements and experience
+2. Logical next career steps based on their background and industry trends
+3. Specific skill gaps that would enhance their marketability
+4. Relevant courses or certifications with actual names and providers
+5. Personal branding strategies tailored to their specific field
+6. Networking approaches appropriate for their industry and career stage
+7. One candid but constructive tip that addresses a notable weakness
+
+Your response should be specific to this individual's résumé details - reference actual companies, skills, roles or experiences mentioned in their document.
+
+IMPORTANT: Output ONLY a valid JSON object with the following structure (each array should contain 3-5 detailed string items):
+{
+  "current_strengths": [array of strings highlighting verified strengths],
+  "career_goals_suggestion": [array of strings with potential career paths],
+  "skills_to_learn": [array of strings listing specific skills to develop],
+  "courses_or_certifications": [array of strings with specific course/certification recommendations],
+  "personal_branding_tips": [array of strings with branding advice],
+  "networking_strategies": [array of strings with networking suggestions],
+  "random_brutally_honest_tip": "One straightforward piece of advice addressing a notable weakness"
+}
+
+Respond ONLY with the JSON object.`;
 
     try {
-      // Get the CV content from the session
-      const sessionKey = `cv_${session_id}`;
-      const cvContent = await kv.get(sessionKey);
+      // Call OpenAI API
+      const completion = await client.chat.completions.create({
+        messages: [
+          { role: 'system', content: prompt },
+          { role: 'user', content: resumeText }
+        ],
+        model: 'gpt-4o-mini',
+        temperature: 0.7,
+        max_tokens: 2000
+      });
 
-      if (!cvContent) {
-        throw new Error('CV content not found in session');
+      const tipsContent = completion.choices[0].message?.content || '';
+      
+      try {
+        // Parse the JSON response
+        const parsedTips = JSON.parse(tipsContent);
+        
+        // Transform the JSON into the expected format for the frontend
+        const formattedTips = [
+          { 
+            category: "Current Strengths", 
+            tips: parsedTips.current_strengths || [] 
+          },
+          { 
+            category: "Career Path Suggestions", 
+            tips: parsedTips.career_goals_suggestion || [] 
+          },
+          { 
+            category: "Skills to Develop", 
+            tips: parsedTips.skills_to_learn || [] 
+          },
+          { 
+            category: "Recommended Courses & Certifications", 
+            tips: parsedTips.courses_or_certifications || [] 
+          },
+          { 
+            category: "Personal Branding Strategy", 
+            tips: parsedTips.personal_branding_tips || [] 
+          },
+          { 
+            category: "Networking Approaches", 
+            tips: parsedTips.networking_strategies || [] 
+          }
+        ];
+        
+        // Add the brutally honest tip as its own category
+        if (parsedTips.random_brutally_honest_tip) {
+          formattedTips.push({
+            category: "Brutally Honest Advice",
+            tips: [parsedTips.random_brutally_honest_tip]
+          });
+        }
+        
+        return res.status(200).json({ tips: formattedTips, source: 'ai' });
+      } catch (parseError) {
+        console.error('Error parsing OpenAI response:', parseError);
+        console.log('Invalid JSON from OpenAI:', tipsContent);
+        // Fall back to mock data if parsing fails
+        return res.status(200).json({ tips: mockTips, source: 'mock' });
       }
-
-      // Generate personalized tips based on the CV
-      const aiResponse = await generateAITips(cvContent as string);
-      tips = aiResponse.tips;
-    } catch (aiError) {
-      // If AI fails or CV not found, fall back to mock responses
-      console.warn('Falling back to mock responses:', aiError);
-      tips = mockResponses;
-      source = 'mock';
+    } catch (openaiError) {
+      console.error('OpenAI API error:', openaiError);
+      // Fall back to mock data if OpenAI fails
+      return res.status(200).json({ tips: mockTips, source: 'mock' });
     }
-
-    // Add a small delay to simulate processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    return res.status(200).json({ tips, source });
   } catch (error) {
-    console.error('Error getting tips:', error);
-    return res.status(500).json({ error: 'Error retrieving tips' });
+    console.error('Error generating tips:', error);
+    return res.status(500).json({ error: 'Error generating personalized tips' });
   }
 }

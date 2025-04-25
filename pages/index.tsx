@@ -7,6 +7,13 @@ import { useAuth, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import HeaderMenu from "../components/HeaderMenu";
 
+interface AnalysisResponse {
+  analysis: string;
+  score: number;
+  aiScore: number;
+  sessionId?: string;
+}
+
 export default function Home() {
   const [pdfText, setPdfText] = useState<string>('');
   const [analysis, setAnalysis] = useState<string>('');
@@ -14,17 +21,28 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('');
-  const { isLoaded, userId } = useAuth();
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [score, setScore] = useState<number>(0);
+  const [aiScore, setAiScore] = useState<number>(0);
 
-  const handleFileUpload = async (analysis: string, file: File) => {
+  const handleFileUpload = async (analysisResponse: AnalysisResponse, file: File) => {
     setIsLoading(true);
     try {
       setFileName(file.name);
       setFileSize((file.size / (1024 * 1024)).toFixed(2) + ' MB');
-      setAnalysis(analysis);
+      setAnalysis(analysisResponse.analysis);
+      
+      // Adicione estas linhas para armazenar o score e aiScore
+      setScore(analysisResponse.score);
+      setAiScore(analysisResponse.aiScore);
+      
+      // Armazena o ID da sessão se for retornado pela API
+      if (analysisResponse.sessionId) {
+        setSessionId(analysisResponse.sessionId);
+      }
     } catch (error) {
-      console.error('Error analyzing PDF:', error);
-      setAnalysis('Error analyzing PDF. Please try again.');
+      console.error('Erro ao analisar PDF:', error);
+      setAnalysis('Erro ao analisar PDF. Por favor, tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -106,12 +124,14 @@ export default function Home() {
             </>
           )}
           {analysis && (
-            <Analysis score={0} aiScore={0}
+            <Analysis 
               analysis={analysis}
               fileName={fileName}
               fileSize={fileSize}
               onTryAgain={handleTryAgain}
               onGetHelp={() => setIsModalOpen(true)}
+              score={score}
+              aiScore={aiScore}
             />
           )}
         </div>
@@ -119,6 +139,7 @@ export default function Home() {
         <PaymentModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          sessionId={sessionId || undefined}
         />
       </main>
 

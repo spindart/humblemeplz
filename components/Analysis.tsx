@@ -1,18 +1,27 @@
+import React from 'react';
 import { ScoreBar } from './ScoreBar';
 import { SocialShareButtons } from './SocialShareButtons';
 import { motion } from 'framer-motion';
 
 interface AnalysisProps {
   analysis: string;
-  fileName?: string;
-  fileSize?: string;
+  fileName: string;
+  fileSize: string;
   onTryAgain: () => void;
   onGetHelp: () => void;
   score: number;
   aiScore: number;
 }
 
-export const Analysis: React.FC<AnalysisProps> = ({ analysis, fileName, fileSize, onTryAgain, onGetHelp, score, aiScore }) => {
+export const Analysis: React.FC<AnalysisProps> = ({
+  analysis,
+  fileName,
+  fileSize,
+  onTryAgain,
+  onGetHelp,
+  score,
+  aiScore
+}) => {
   return (
     <motion.div 
       className="bg-white rounded-lg p-4 sm:p-6 shadow-sm"
@@ -69,7 +78,7 @@ export const Analysis: React.FC<AnalysisProps> = ({ analysis, fileName, fileSize
           <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          How to improve my resume
+          Take YOUR Career to the Next Level
         </motion.button>
       </div>
       

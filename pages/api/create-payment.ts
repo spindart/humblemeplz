@@ -22,9 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             currency: 'usd',
             product_data: {
               name: 'Professional Resume Analysis',
-              description: 'Get personalized tips to improve your resume',
+              description: 'Get Your Personalized Carrer Transformation',
             },
-            unit_amount: 499, // $4.99
+            unit_amount: 699, // $4.99
           },
           quantity: 1,
         },
@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customer_email: email,
       metadata: {
         name,
+        email,
         sessionId,
       },
     });

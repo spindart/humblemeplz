@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useAuth, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
 import HeaderMenu from "../components/HeaderMenu";
+import { mockTips } from '../utils/mockData';
 
 interface Tip {
   category: string;
@@ -21,6 +22,7 @@ export default function Success() {
   const [source, setSource] = useState<'ai' | 'mock'>('ai');
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Check if Clerk is enabled from environment variable
   const isClerkEnabled = process.env.NEXT_PUBLIC_CLERK_ENABLED === 'true';
@@ -30,21 +32,34 @@ export default function Success() {
     
     if (session_id) {
       // Fetch personalized tips based on the session
-      fetch(`/api/get-tips?session_id=${session_id}`)
-        .then(res => res.json())
+      fetch(`/api/get-tips?sessionId=${session_id}`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Error ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then((data: TipsResponse) => {
-          if (data.tips) {
+          if (data.tips && Array.isArray(data.tips)) {
             setTips(data.tips);
-            setSource(data.source);
+            setSource(data.source || 'ai');
+          } else {
+            console.error('Invalid tips format:', data);
+            setTips(mockTips);
+            setSource('mock');
           }
           setLoading(false);
         })
         .catch(error => {
-          console.error(error);
+          console.error('Error fetching tips:', error);
+          setError(error.message);
+          setTips(mockTips);
+          setSource('mock');
           setLoading(false);
         });
     } else {
       setLoading(false);
+      setError('No session ID provided');
     }
   }, [router.isReady, session_id]);
 
@@ -105,6 +120,39 @@ export default function Success() {
             <div className="text-center py-8">
               <div className="w-12 h-12 border-4 border-red-800 border-t-transparent rounded-full animate-spin mx-auto"></div>
               <p className="text-gray-600 mt-4">Loading your personalized tips...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-4">Error: {error}</p>
+              <p className="text-gray-600 mb-4">Showing fallback recommendations instead.</p>
+              <div className="prose max-w-none">
+                <div className="space-y-4 sm:space-y-8">
+                  {tips.map((category, index) => (
+                    <div 
+                      key={index} 
+                      className="bg-gray-50 p-4 sm:p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
+                    >
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                        <span className="w-6 h-6 sm:w-8 sm:h-8 bg-red-800 text-white rounded-full flex items-center justify-center mr-2 sm:mr-3 text-xs sm:text-sm flex-shrink-0">
+                          {index + 1}
+                        </span>
+                        <span className="break-words">{category.category}</span>
+                      </h3>
+                      <ul className="list-disc pl-4 sm:pl-6 space-y-1 sm:space-y-2 text-sm sm:text-base">
+                        {category.tips && Array.isArray(category.tips) ? (
+                          category.tips.map((tip, tipIndex) => (
+                            <li key={tipIndex} className="text-gray-700">
+                              {tip}
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-gray-700">No tips available</li>
+                        )}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : tips.length > 0 ? (
             <div className="prose max-w-none">

@@ -1,9 +1,16 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { SimpleCaptcha } from './SimpleCaptcha';
 
+interface AnalysisResponse {
+  analysis: string;
+  score: number;
+  aiScore: number;
+  sessionId?: string;
+}
+
 interface FileUploaderProps {
-  onUpload: (analysis: string, file: File) => void;
+  onUpload: (analysisResponse: AnalysisResponse, file: File) => void;
   isLoading: boolean;
 }
 
@@ -27,7 +34,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUpload, isLoading 
       });
       const data = await response.json();
       if (data.analysis) {
-        onUpload(data.analysis, file);
+        onUpload(data, file);
       }
     } catch (error) {
       console.error('Error uploading file:', error);

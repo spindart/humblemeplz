@@ -136,7 +136,7 @@ Analyze the résumé carefully to identify:
 
 Your response should be specific to this individual's résumé details - reference actual companies, skills, roles or experiences mentioned in their document.
 
-IMPORTANT: Output ONLY a valid JSON object with the following structure (each array should contain 3-5 detailed string items):
+IMPORTANT: Output ONLY a valid JSON object with the following structure (each array should contain 4-6 detailed string items):
 {
   "current_strengths": [array of strings highlighting verified strengths],
   "career_goals_suggestion": [array of strings with potential career paths],
@@ -146,7 +146,7 @@ IMPORTANT: Output ONLY a valid JSON object with the following structure (each ar
   "networking_strategies": [array of strings with networking suggestions],
   "random_brutally_honest_tip": "One straightforward piece of advice addressing a notable weakness"
 }
-
+Respond in ENGLISH language.
 Respond ONLY with the JSON object.`;
 
     try {

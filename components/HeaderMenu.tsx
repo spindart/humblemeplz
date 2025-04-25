@@ -14,12 +14,12 @@ export default function HeaderMenu() {
               HumbleMePlz
             </span>
             <nav className="flex space-x-4 items-center">
-              {/* <button
+              <button
                 onClick={() => router.push("/myTips")}
                 className="text-gray-700 hover:text-red-800"
               >
                 My tips
-              </button> */}
+              </button>
               <UserButton afterSignOutUrl="/" />
             </nav>
           </div>

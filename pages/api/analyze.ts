@@ -231,12 +231,26 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           .replace(/\n\n/g, '{{PARAGRAPH}}')
           .replace(/\n/g, '<br>')
           .replace(/{{PARAGRAPH}}/g, '<br><br>')
-          // Substituir tags HTML por marcação Markdown para negrito
-          .replace(/PROFESSIONAL EXPERIENCE/g, '**PROFESSIONAL EXPERIENCE**')
-          .replace(/SKILLS ASSESSMENT/g, '**SKILLS ASSESSMENT**')
-          .replace(/EDUCATION DEEP DIVE/g, '**EDUCATION DEEP DIVE**')
-          .replace(/EPIC FAILURES/g, '**EPIC FAILURES**')
-          .replace(/SAVAGE ADVICE/g, '**SAVAGE ADVICE**');
+          // Primeiro substituir os títulos de seção com asteriscos e dois pontos
+          .replace(/\*+\s*PROFESSIONAL EXPERIENCE\s*\*+\s*:*/g, '<h3 class="text-lg font-bold mt-4 mb-2">PROFESSIONAL EXPERIENCE</h3>')
+          .replace(/\*+\s*SKILLS ASSESSMENT\s*\*+\s*:*/g, '<h3 class="text-lg font-bold mt-4 mb-2">SKILLS ASSESSMENT</h3>')
+          .replace(/\*+\s*EDUCATION DEEP DIVE\s*\*+\s*:*/g, '<h3 class="text-lg font-bold mt-4 mb-2">EDUCATION DEEP DIVE</h3>')
+          .replace(/\*+\s*EPIC FAILURES\s*\*+\s*:*/g, '<h3 class="text-lg font-bold mt-4 mb-2">EPIC FAILURES</h3>')
+          .replace(/\*+\s*SAVAGE ADVICE\s*\*+\s*:*/g, '<h3 class="text-lg font-bold mt-4 mb-2">SAVAGE ADVICE</h3>')
+          // Substituir títulos sem asteriscos mas com dois pontos
+          .replace(/PROFESSIONAL EXPERIENCE\s*:+/g, '<h3 class="text-lg font-bold mt-4 mb-2">PROFESSIONAL EXPERIENCE</h3>')
+          .replace(/SKILLS ASSESSMENT\s*:+/g, '<h3 class="text-lg font-bold mt-4 mb-2">SKILLS ASSESSMENT</h3>')
+          .replace(/EDUCATION DEEP DIVE\s*:+/g, '<h3 class="text-lg font-bold mt-4 mb-2">EDUCATION DEEP DIVE</h3>')
+          .replace(/EPIC FAILURES\s*:+/g, '<h3 class="text-lg font-bold mt-4 mb-2">EPIC FAILURES</h3>')
+          .replace(/SAVAGE ADVICE\s*:+/g, '<h3 class="text-lg font-bold mt-4 mb-2">SAVAGE ADVICE</h3>')
+          // Depois remover todos os asteriscos restantes
+          .replace(/\*/g, '')
+          // Manter as substituições originais como fallback
+          .replace(/PROFESSIONAL EXPERIENCE/g, '<h3 class="text-lg font-bold mt-4 mb-2">PROFESSIONAL EXPERIENCE</h3>')
+          .replace(/SKILLS ASSESSMENT/g, '<h3 class="text-lg font-bold mt-4 mb-2">SKILLS ASSESSMENT</h3>')
+          .replace(/EDUCATION DEEP DIVE/g, '<h3 class="text-lg font-bold mt-4 mb-2">EDUCATION DEEP DIVE</h3>')
+          .replace(/EPIC FAILURES/g, '<h3 class="text-lg font-bold mt-4 mb-2">EPIC FAILURES</h3>')
+          .replace(/SAVAGE ADVICE/g, '<h3 class="text-lg font-bold mt-4 mb-2">SAVAGE ADVICE</h3>');
 
       } catch (openaiError) {
         console.warn('Azure OpenAI API failed, using mock response:', openaiError);

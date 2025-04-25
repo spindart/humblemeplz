@@ -182,7 +182,7 @@ Perform an in-depth analysis of these critical areas:
    - Personal branding elements
    - Language, tone, and professionalism
 
-Your response should be 300-400 words maximum, structured as:
+Your response should be 400-500 words minimum, structured as:
 - A sarcastic introduction (2-3 sentences)
 - A detailed roast of their PROFESSIONAL EXPERIENCE (specific companies, roles, descriptions)
 - A brutal critique of their claimed SKILLS (specific skills mentioned)
@@ -207,7 +207,7 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           ],
           model: 'gpt-4o-mini', // Use a variável modelName em vez de 'gpt-4o-mini'
           temperature: 0.8,
-          max_tokens: 1500,
+          max_tokens: 2500,
           response_format: { type: "json_object" }
         });
 

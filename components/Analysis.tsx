@@ -24,7 +24,7 @@ export const Analysis: React.FC<AnalysisProps> = ({
   aiScore
 }) => {
   return (
-    <motion.div 
+    <motion.div
       className="bg-white rounded-lg p-4 sm:p-6 shadow-sm"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -46,13 +46,13 @@ export const Analysis: React.FC<AnalysisProps> = ({
         <ScoreBar score={score} aiScore={aiScore} />
       </motion.div>
 
-      <motion.div 
+      <motion.div
         className="text-gray-800 mb-6 mt-6 text-sm sm:text-base"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-         <SanitizedHtml html={analysis} className="whitespace-pre-wrap" />
+        <SanitizedHtml html={analysis} className="whitespace-pre-wrap" />
       </motion.div>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
@@ -71,8 +71,7 @@ export const Analysis: React.FC<AnalysisProps> = ({
 
         <motion.button
           onClick={onGetHelp}
-          className="inline-flex items-center px-4 py-2 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 w-full sm:w-auto justify-center"
-          whileHover={{ scale: 1.05, boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.1)" }}
+          className="inline-flex items-center px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 w-full sm:w-auto justify-center" whileHover={{ scale: 1.05, boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.1)" }}
           whileTap={{ scale: 0.95 }}
           transition={{ duration: 0.3 }}
         >
@@ -82,8 +81,8 @@ export const Analysis: React.FC<AnalysisProps> = ({
           Fine. Let’s make your CV suck less.
         </motion.button>
       </div>
-      
-      <motion.div 
+
+      <motion.div
         className="mt-6 mb-6 border-t border-gray-200 pt-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -92,7 +91,7 @@ export const Analysis: React.FC<AnalysisProps> = ({
         <h3 className="text-center text-lg sm:text-xl font-medium text-gray-700 mb-4">Share your humiliation:</h3>
         <SocialShareButtons analysisText={analysis} />
       </motion.div>
-      
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { useAuth, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
-import HeaderMenu from "../components/HeaderMenu";
-import { mockTips } from '../utils/mockData';
-import SanitizedHtml from '../components/SanitizedHtml';
+import { useRouter } from 'next/router';
+import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
+import HeaderMenu from '../components/HeaderMenu';
 
 interface Tip {
   category: string;
@@ -23,7 +21,8 @@ export default function Success() {
   const [source, setSource] = useState<'ai' | 'mock'>('ai');
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [convertingToTasks, setConvertingToTasks] = useState(false);
+  const [tasksCreated, setTasksCreated] = useState(false);
   
   // Check if Clerk is enabled from environment variable
   const isClerkEnabled = process.env.NEXT_PUBLIC_CLERK_ENABLED === 'true';
@@ -34,35 +33,51 @@ export default function Success() {
     if (session_id) {
       // Fetch personalized tips based on the session
       fetch(`/api/get-tips?sessionId=${session_id}`)
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`Error ${res.status}: ${res.statusText}`);
-          }
-          return res.json();
-        })
+        .then(res => res.json())
         .then((data: TipsResponse) => {
-          if (data.tips && Array.isArray(data.tips)) {
+          if (data.tips) {
             setTips(data.tips);
-            setSource(data.source || 'ai');
-          } else {
-            console.error('Invalid tips format:', data);
-            setTips(mockTips);
-            setSource('mock');
+            setSource(data.source);
+            
+            // Automatically convert tips to tasks
+            convertTipsToTasks(data.tips);
           }
           setLoading(false);
         })
         .catch(error => {
-          console.error('Error fetching tips:', error);
-          setError(error.message);
-          setTips(mockTips);
-          setSource('mock');
+          console.error(error);
           setLoading(false);
         });
     } else {
       setLoading(false);
-      setError('No session ID provided');
     }
   }, [router.isReady, session_id]);
+
+  const convertTipsToTasks = async (tipsData: Tip[]) => {
+    try {
+      setConvertingToTasks(true);
+      const response = await fetch('/api/kanban/convert-tips-to-tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tips: tipsData }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to convert tips to tasks');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setTasksCreated(true);
+      }
+    } catch (error) {
+      console.error('Error converting tips to tasks:', error);
+    } finally {
+      setConvertingToTasks(false);
+    }
+  };
 
   const handleDownloadPDF = async () => {
     try {
@@ -98,6 +113,35 @@ export default function Success() {
     }
   };
 
+  const handleConvertToTasks = async () => {
+    if (!tips.length) return;
+
+    try {
+      setConvertingToTasks(true);
+      const response = await fetch('/api/kanban/convert-tips-to-tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tips }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to convert tips to tasks');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        router.push('/myTasks?refresh=true');
+      }
+    } catch (error) {
+      console.error('Error converting tips to tasks:', error);
+      alert('Failed to convert tips to tasks. Please try again.');
+    } finally {
+      setConvertingToTasks(false);
+    }
+  };
+
   // Render content without Clerk authentication when disabled
   const renderContent = () => (
     <main className="container mx-auto px-4 py-4 sm:py-8">
@@ -115,45 +159,17 @@ export default function Success() {
             <p className="text-gray-600 text-sm sm:text-base">
               Your payment has been processed successfully.
             </p>
+            {tasksCreated && (
+              <div className="mt-2 text-green-600 text-sm">
+                Your tips have been converted to tasks! <a href="/myTasks" className="underline">View your tasks</a>
+              </div>
+            )}
           </div>
           
           {loading ? (
             <div className="text-center py-8">
               <div className="w-12 h-12 border-4 border-red-800 border-t-transparent rounded-full animate-spin mx-auto"></div>
               <p className="text-gray-600 mt-4">Loading your personalized tips...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-8">
-              <p className="text-red-600 mb-4">Error: {error}</p>
-              <p className="text-gray-600 mb-4">Showing fallback recommendations instead.</p>
-              <div className="prose max-w-none">
-                <div className="space-y-4 sm:space-y-8">
-                  {tips.map((category, index) => (
-                    <div 
-                      key={index} 
-                      className="bg-gray-50 p-4 sm:p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
-                    >
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-                        <span className="w-6 h-6 sm:w-8 sm:h-8 bg-red-800 text-white rounded-full flex items-center justify-center mr-2 sm:mr-3 text-xs sm:text-sm flex-shrink-0">
-                          {index + 1}
-                        </span>
-                        <span className="break-words">{category.category}</span>
-                      </h3>
-                      <ul className="list-disc pl-4 sm:pl-6 space-y-1 sm:space-y-2 text-sm sm:text-base">
-                        {category.tips && Array.isArray(category.tips) ? (
-                          category.tips.map((tip, tipIndex) => (
-                            <li key={tipIndex} className="text-gray-700">
-                              {tip}
-                            </li>
-                          ))
-                        ) : (
-                          <li className="text-gray-700">No tips available</li>
-                        )}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           ) : tips.length > 0 ? (
             <div className="prose max-w-none">
@@ -184,25 +200,36 @@ export default function Success() {
                   >
                     {downloading ? "Generating PDF..." : "Download PDF"}
                   </button>
+                  <button
+                    onClick={() => router.push('/myTasks')}
+                    className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  >
+                    View Tasks
+                  </button>
                 </div>
               </div>
               <div className="space-y-4 sm:space-y-8">
                 {tips.map((category, index) => (
                   <div 
                     key={index} 
-                    className="bg-gray-50 p-4 sm:p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
+                    className={`bg-gray-50 p-4 sm:p-6 rounded-lg border border-gray-100 hover:shadow-md transition-shadow ${
+                      category.category === "Current Strengths" ? "border-l-4 border-l-green-500" : ""
+                    }`}
                   >
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
                       <span className="w-6 h-6 sm:w-8 sm:h-8 bg-red-800 text-white rounded-full flex items-center justify-center mr-2 sm:mr-3 text-xs sm:text-sm flex-shrink-0">
                         {index + 1}
                       </span>
-                      <SanitizedHtml html={category.category} className="break-words" />
+                      <span className="break-words">{category.category}</span>
+                      {category.category === "Current Strengths" && (
+                        <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Strengths</span>
+                      )}
                     </h3>
                     <ul className="list-disc pl-4 sm:pl-6 space-y-1 sm:space-y-2 text-sm sm:text-base">
                       {category.tips && Array.isArray(category.tips) ? (
                         category.tips.map((tip, tipIndex) => (
                           <li key={tipIndex} className="text-gray-700">
-                            <SanitizedHtml html={tip} />
+                            {tip}
                           </li>
                         ))
                       ) : (

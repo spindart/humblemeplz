@@ -250,7 +250,8 @@ DO NOT RETURN ANYTHING OTHER THAN THE PURE JSON OBJECT.`
           .replace(/SKILLS ASSESSMENT/g, '<h3 class="text-lg font-bold mt-4 mb-2">SKILLS ASSESSMENT</h3>')
           .replace(/EDUCATION DEEP DIVE/g, '<h3 class="text-lg font-bold mt-4 mb-2">EDUCATION DEEP DIVE</h3>')
           .replace(/EPIC FAILURES/g, '<h3 class="text-lg font-bold mt-4 mb-2">EPIC FAILURES</h3>')
-          .replace(/SAVAGE ADVICE/g, '<h3 class="text-lg font-bold mt-4 mb-2">SAVAGE ADVICE</h3>');
+          .replace(/SAVAGE ADVICE/g, '<h3 class="text-lg font-bold mt-4 mb-2">SAVAGE ADVICE</h3>')
+          .replace(/(HIGH PRIORITY):/g, '<br>');
 
       } catch (openaiError) {
         console.warn('Azure OpenAI API failed, using mock response:', openaiError);

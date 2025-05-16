@@ -106,11 +106,4 @@ This project is licensed under the **ISC License**.
 Contributions are welcome!  
 Feel free to open an issue or submit a pull request.
 
----
-
-## 📝 Important Note
-
-This project uses environment variables to manage sensitive information.  
-**Never commit your `.env.local` file to version control.**
-
 

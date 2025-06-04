@@ -91,10 +91,4 @@ HumbleMePlz/
 - ✅ Hot Reloading  
 - ✅ TypeScript with strict type-checking  
 - ✅ ESLint for code linting  
-- ✅ Tailwind CSS for rapid UI development  
-
----
-
-## 📄 License
-
-This project is licensed under the **ISC License**.
+- ✅ Tailwind CSS for rapid UI development

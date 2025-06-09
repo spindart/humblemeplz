@@ -83,7 +83,6 @@ HumbleMePlz/
 ├── styles/           # Global styles (Tailwind config, etc.)
 └── types/            # TypeScript type definitions
 ```
-
 ---
 
 ## 🛠️ Development Notes

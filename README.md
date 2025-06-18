@@ -90,4 +90,4 @@ HumbleMePlz/
 - ✅ Hot Reloading  
 - ✅ TypeScript with strict type-checking  
 - ✅ ESLint for code linting  
-- ✅ Tailwind CSS for rapid UI development
+- ✅ Tailwind CSS for rapid UI development.

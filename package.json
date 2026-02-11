@@ -21,7 +21,7 @@
     "@clerk/nextjs": "^6.23.3",
     "@headlessui/react": "^1.7.18",
     "@vercel/kv": "^3.0.0",
-    "axios": "^1.12.0",
+    "axios": "^1.13.5",
     "critters": "^0.0.20",
     "dompurify": "^3.2.5",
     "formidable": "^3.5.4",
